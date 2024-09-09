@@ -4,10 +4,24 @@ from PIL import ImageTk,Image
 import speech_recognition as sr
 import pyttsx3
 import serial
+import timeit
+import socket
 
+host = '192.168.22.163'
+port = 8888
 
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((host, port))
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
+def send(x):
+    try:
+        client_socket.sendall(x.encode('utf-8'))
+    except KeyboardInterrupt:
+        print("Closing connection")
+    finally:
+        pass
+
 
 def speak(text):
     engine.say(text)
@@ -28,19 +42,22 @@ def listen_for_commands(c):
         if "forward" in c:
                 #ser.write(b'F')
             print('Forward')
-            Flag=False
+            send('f')
         elif "backward" in c:
                 #ser.write(b'B')
             print('Backward')
-            Flag=False                
+            send('b')
         elif "left" in c:
                 #ser.write(b'L')
             print('Left')
-            Flag=False                
+            send('l')
         elif "right" in c:
                 #ser.write(b'R')
             print('Right')
-            Flag=False                
+            send('r')
+        elif "stop" in c:
+            print ('Deactivate')
+            Flag=False
         else:
             #ser.write(b'S')  # Stop or no action
             print('Stop')
@@ -51,15 +68,15 @@ def listen_for_commands(c):
 
 
 def StartVoice():
-    speak("Give Command...")
     global Flag
     Flag=True
     while Flag:
         r = sr.Recognizer()
         try:
             with sr.Microphone() as source:
-                print("Jarvis Activated....")
-                audio = r.listen(source,timeout = 3, phrase_time_limit=2)
+                print("Salmon Boi Activated....")
+                speak("Give Command...")
+                audio = r.listen(source,timeout = 2, phrase_time_limit=1)
                 command = r.recognize_google(audio)
 
                 listen_for_commands(command)
@@ -67,18 +84,21 @@ def StartVoice():
         except Exception as e:
             print("Error; {0}".format(e))
 
-
 def on_click(event):
     item = canvas.find_withtag("current")[0]
     
     if item == Up:
         print("Up")
+        send('f')
     elif item == Down:
         print("Down")
+        send('b')
     elif item == Left:
         print("Left")
+        send('l')
     elif item == Right:
         print("Right")
+        send('r')
     elif item == Voice:
         print('Voice')
         StartVoice()
@@ -112,3 +132,4 @@ canvas.tag_bind(Voice, '<ButtonPress-1>', on_click)
 
 
 root.mainloop()
+
